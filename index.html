@@ -1,66 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DRISHTIKON INDIA | Official News & Advertisement Portal</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drishtikon India - दृष्टिकोण इंडिया</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-<link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; color: #333; line-height: 1.6; }
+    
+    header { background: #1a365d; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    header h1 { font-size: 28px; letter-spacing: 1px; }
+    header p { font-size: 14px; opacity: 0.9; margin-top: 4px; }
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
+    
+    .news-card { background: #ffffff; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .badge { background-color: #e53e3e; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-block; text-transform: uppercase; }
+    .news-title { font-size: 22px; font-weight: 700; color: #1a202c; margin: 12px 0 8px 0; }
+    .news-date { font-size: 13px; color: #718096; margin-bottom: 15px; display: block; }
+    .news-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
+    .news-content { font-size: 16px; color: #2d3748; white-space: pre-line; text-align: justify; }
+
+    .loading-text { text-align: center; font-size: 18px; color: #718096; margin-top: 50px; }
+    footer { text-align: center; padding: 20px; color: #718096; font-size: 14px; margin-top: 40px; }
+  </style>
 </head>
-
 <body>
 
-<header class="top-header">
-    <div class="logo">
-        <h1>DRISHTIKON INDIA</h1>
-        <p>Official News & Advertisement Portal</p>
-    </div>
-</header>
+  <header>
+    <h1>दृष्टिकोण इंडिया (Drishtikon India)</h1>
+    <p>निष्पक्ष और सटीक समाचार पोर्टल</p>
+  </header>
 
-<nav class="navbar">
-    <a href="#">Home</a>
-    <a href="#">Latest News</a>
-    <a href="#">Advertisement</a>
-    <a href="#">Contact</a>
-</nav>
+  <div class="container" id="newsFeed">
+    <div class="loading-text">ताज़ा ख़बरें लोड हो रही हैं...</div>
+  </div>
 
-<section class="hero">
-    <h2>Latest News & Advertisements</h2>
-    <p>Trusted Updates • Government Notices • Company Advertisements</p>
-</section>
+  <footer>
+    © Drishtikon India. All Rights Reserved.
+  </footer>
 
-<section class="search-box">
-    <input type="text" id="searchInput" placeholder="Search News...">
-</section>
+  <script>
+    // Firebase Setup
+    const firebaseConfig = {
+      databaseURL: "https://drishtikon-india-default-rtdb.firebaseio.com/"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-<section class="news-container">
+    const newsFeed = document.getElementById('newsFeed');
 
-<div class="news-card">
-<img src="https://via.placeholder.com/900x450?text=Drishtikon+India+News" alt="News">
+    // Fetch News Realtime
+    database.ref('news').on('value', (snapshot) => {
+      newsFeed.innerHTML = '';
+      const data = snapshot.val();
 
-<div class="news-content">
-<h2>Welcome to Drishtikon India</h2>
+      if (!data) {
+        newsFeed.innerHTML = '<div class="loading-text">फ़िलहाल कोई खबर पब्लिश नहीं की गई है।</div>';
+        return;
+      }
 
-<p class="date">20 July 2026</p>
+      // Show latest news first
+      Object.keys(data).reverse().forEach(key => {
+        const item = data[key];
 
-<p>
-Welcome to the official news and advertisement portal of Drishtikon India. Here you can publish news, notices, government updates, company advertisements and public announcements.
-</p>
+        const card = document.createElement('article');
+        card.className = 'news-card';
 
-<a href="#" class="btn">Read More</a>
+        card.innerHTML = `
+          <span class="badge">${item.category || 'ताज़ा ख़बर'}</span>
+          <h2 class="news-title">${item.title}</h2>
+          <span class="news-date">📅 ${item.date || 'हाल ही में'}</span>
+          ${item.image ? `<img class="news-image" src="${item.image}" alt="News Image">` : ''}
+          <p class="news-content">${item.content}</p>
+        `;
 
-</div>
-</div>
-
-</section>
-
-<footer>
-<p>© 2026 DRISHTIKON INDIA. All Rights Reserved.</p>
-</footer>
-
-<script src="script.js"></script>
+        newsFeed.appendChild(card);
+      });
+    });
+  </script>
 
 </body>
 </html>
+
