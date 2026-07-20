@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drishtikon India - Admin Panel</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; max-width: 600px; margin: auto; }
+    h2 { text-align: center; color: #333; }
+    .form-group { margin-bottom: 15px; }
+    label { font-weight: bold; display: block; margin-bottom: 5px; }
+    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    button:hover { background-color: #218838; }
+    #status { margin-top: 15px; text-align: center; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>Drishtikon India - Admin Panel</h2>
+
+  <form id="newsForm">
+    <div class="form-group">
+      <label>खबर का शीर्षक (Title):</label>
+      <input type="text" id="title" required placeholder="यहाँ शीर्षक दर्ज करें">
+    </div>
+
+    <div class="form-group">
+      <label>कैटेगरी (Category):</label>
+      <select id="category">
+        <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
+        <option value="राजनीति">राजनीति</option>
+        <option value="खेल">खेल</option>
+        <option value="मनोरंजन">मनोरंजन</option>
+        <option value="देश-विदेश">देश-विदेश</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>फोटो का Link (Image URL):</label>
+      <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
+    </div>
+
+    <div class="form-group">
+      <label>खबर का पूरा विवरण (Content):</label>
+      <textarea id="content" rows="6" required placeholder="यहाँ पूरी खबर लिखें..."></textarea>
+    </div>
+
+    <button type="submit" id="submitBtn">खबर पब्लिश करें</button>
+  </form>
+
+  <p id="status"></p>
+
+  <!-- Firebase Modular Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Firebase Config (Drishtikon India)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAF8LuNgB105d5196pJ9o7Y3lY...", 
+      authDomain: "drishtikon-india.firebaseapp.com",
+      projectId: "drishtikon-india",
+      storageBucket: "drishtikon-india.firebasestorage.app",
+      messagingSenderId: "604136290215",
+      appId: "1:604136290215:web:a8fe3a8d4c36bc58d72882"
+    };
+
+    // Firebase Initialize
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Form Submit Event
+    const form = document.getElementById('newsForm');
+    const statusText = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      submitBtn.disabled = true;
+      statusText.style.color = "blue";
+      statusText.innerText = "खबर अपलोड हो रही है...";
+
+      const title = document.getElementById('title').value;
+      const category = document.getElementById('category').value;
+      const imageUrl = document.getElementById('imageUrl').value;
+      const content = document.getElementById('content').value;
+
+      try {
+        await addDoc(collection(db, "news"), {
+          title: title,
+          category: category,
+          imageUrl: imageUrl,
+          content: content,
+          timestamp: serverTimestamp()
+        });
+
+        statusText.style.color = "green";
+        statusText.innerText = "✅ खबर सफलतापूर्वक पब्लिश हो गई!";
+        form.reset();
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        statusText.style.color = "red";
+        statusText.innerText = "❌ त्रुटि: " + error.message;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
