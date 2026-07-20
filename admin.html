@@ -3,213 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drishtikon India - Admin Panel</title>
+  <title>Admin Panel - Drishtikon India</title>
   
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
-    .admin-container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    h2, h3 { text-align: center; color: #333; margin-bottom: 20px; }
-    label { font-weight: bold; margin-top: 15px; display: block; color: #444; }
-    input[type="text"], textarea, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-    
-    .upload-btn-wrapper { margin-top: 10px; text-align: center; }
-    .file-input { display: none; }
-    .upload-btn { background-color: #007bff; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; display: inline-block; font-weight: bold; width: 100%; box-sizing: border-box; text-align: center; }
-    .upload-btn:hover { background-color: #0056b3; }
-    #uploadStatus { font-size: 13px; font-weight: bold; color: #28a745; margin-top: 5px; display: block; }
-
-    .submit-btn { width: 100%; background-color: #00a65a; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-    .submit-btn:hover { background-color: #008d4c; }
-    .cancel-btn { width: 100%; background-color: #dc3545; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
-
-    .news-item { background: #f8f9fa; border: 1px solid #ddd; padding: 12px; margin-top: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .news-info { max-width: 70%; }
-    .news-title { font-weight: bold; font-size: 15px; color: #222; }
-    .news-meta { font-size: 12px; color: #666; }
-    .action-btns button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 5px; }
-    .edit-btn { background-color: #ffc107; color: #000; }
-    .delete-btn { background-color: #dc3545; color: #fff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; padding: 15px; }
+    .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #333; margin-bottom: 20px; }
+    label { font-weight: bold; margin-top: 10px; display: block; color: #444; }
+    input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+    .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    .btn-submit:hover { background: #218838; }
+    .news-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; }
+    .news-item img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px; }
+    .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
   </style>
 </head>
 <body>
 
-<div class="admin-container">
-  <h2>Drishtikon India - Admin Panel</h2>
-  
-  <form id="newsForm">
-    <input type="hidden" id="editKey">
+  <div class="container">
+    <h2>Drishtikon India - Admin Panel</h2>
 
-    <label for="title">खबर का शीर्षक (Title):</label>
-    <input type="text" id="title" placeholder="यहाँ शीर्षक दर्ज करें" required>
+    <form id="newsForm">
+      <label>खबर का शीर्षक (Title):</label>
+      <input type="text" id="title" placeholder="यहाँ शीर्षक लिखें" required>
 
-    <label for="category">कैटेगरी (Category):</label>
-    <select id="category">
-      <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
-      <option value="राष्ट्रीय">राष्ट्रीय</option>
-      <option value="राजनीति">राजनीति</option>
-      <option value="खेल">खेल</option>
-      <option value="मनोरंजन">मनोरंजन</option>
-    </select>
+      <label>कैटेगरी (Category):</label>
+      <select id="category">
+        <option value="राष्ट्रीय">राष्ट्रीय</option>
+        <option value="राज्य">राज्य</option>
+        <option value="खेल">खेल</option>
+        <option value="मनोरंजन">मनोरंजन</option>
+        <option value="टेक">टेक</option>
+      </select>
 
-    <label for="image">फोटो (Image Upload / Link):</label>
-    <input type="text" id="image" placeholder="फोटो का लिंक अपने आप यहाँ आएगा" required>
-    
-    <div class="upload-btn-wrapper">
-      <label for="filePicker" class="upload-btn">📸 गैलरी से फोटो सेलेक्ट करें</label>
-      <input type="file" id="filePicker" class="file-input" accept="image/*" onchange="uploadImage(this)">
-      <span id="uploadStatus"></span>
-    </div>
+      <label>फोटो का डायरेक्ट इमेज लिंक (Direct Image URL):</label>
+      <input type="text" id="image" placeholder="https://i.ibb.co/.../photo.jpg">
+      <small style="color:#666; display:block; margin-top:-10px; margin-bottom:15px;">
+        *ImgBB पर फोटो अपलोड करने के बाद <b>HTML full linked</b> या <b>Direct Link</b> पेस्ट करें।
+      </small>
 
-    <label for="content">खबर का पूरा विवरण (Content):</label>
-    <textarea id="content" rows="6" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
+      <label>खबर का पूरा विवरण (Content):</label>
+      <textarea id="content" rows="6" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
 
-    <button type="submit" id="submitBtn" class="submit-btn">➕ खबर पब्लिश करें</button>
-    <button type="button" id="cancelBtn" class="cancel-btn" onclick="resetForm()">रद्द करें (Cancel)</button>
-  </form>
+      <button type="submit" class="btn-submit">➕ खबर पब्लिश करें</button>
+    </form>
 
-  <hr style="margin-top: 30px; border: 0; border-top: 1px solid #ccc;">
+    <hr style="margin: 30px 0;">
 
-  <h3>पब्लिश की गई ख़बरें (Manage / Edit / Delete)</h3>
-  <div id="newsList">लोड हो रहा है...</div>
-</div>
+    <h3>पब्लिश की गई ख़बरें</h3>
+    <div id="publishedNews">लोड हो रहा है...</div>
+  </div>
 
-<script>
-  // Firebase Configuration
-  const firebaseConfig = {
-    databaseURL: "https://drishtikon-india-default-rtdb.firebaseio.com/"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-
-  // FreeImageHost API for Auto Image Upload
-  function uploadImage(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const statusText = document.getElementById('uploadStatus');
-    statusText.innerText = "⏳ फोटो अपलोड हो रही है, कृपया रुकें...";
-    statusText.style.color = "#ff9800";
-
-    const formData = new FormData();
-    formData.append("key", "6d207e02198a847aa98d0a2a901485a5"); // Free API Key
-    formData.append("action", "upload");
-    formData.append("source", file);
-
-    fetch("https://freeimage.host/api/1/upload", {
-      method: "POST",
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data && data.image && data.image.url) {
-        document.getElementById('image').value = data.image.url;
-        statusText.innerText = "✅ फोटो अपलोड हो गई!";
-        statusText.style.color = "#28a745";
-      } else {
-        alert("फोटो अपलोड नहीं हो सकी, कृपया दोबारा प्रयास करें।");
-        statusText.innerText = "";
-      }
-    })
-    .catch(err => {
-      console.error(err);
-      alert("अपलोड में एरर आया। इंटरनेट चेक करें।");
-      statusText.innerText = "";
-    });
-  }
-
-  // Form Submit (Add / Edit News)
-  const newsForm = document.getElementById('newsForm');
-  newsForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const editKey = document.getElementById('editKey').value;
-    const title = document.getElementById('title').value;
-    const category = document.getElementById('category').value;
-    const image = document.getElementById('image').value;
-    const content = document.getElementById('content').value;
-    
-    const newsData = {
-      title: title,
-      category: category,
-      image: image,
-      content: content,
-      date: new Date().toLocaleDateString('hi-IN')
+  <script>
+    // Firebase Setup
+    const firebaseConfig = {
+      databaseURL: "https://drishtikon-india-default-rtdb.firebaseio.com/"
     };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-    if (editKey) {
-      database.ref('news/' + editKey).update(newsData)
-        .then(() => {
-          alert("खबर अपडेट हो गई!");
-          resetForm();
-        });
-    } else {
+    const newsForm = document.getElementById('newsForm');
+    const publishedNews = document.getElementById('publishedNews');
+
+    // 1. Publish News Function
+    newsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const category = document.getElementById('category').value;
+      let image = document.getElementById('image').value.trim();
+      const content = document.getElementById('content').value;
+
+      // अगर ImgBB वाला साधारण वेब लिंक डाला है तो उसे डायरेक्ट फोटो लिंक में बदलें
+      if (image.includes('ibb.co/') && !image.includes('i.ibb.co')) {
+        // Warning support
+      }
+
+      const newsData = {
+        title: title,
+        category: category,
+        image: image,
+        content: content,
+        date: new Date().toLocaleDateString('hi-IN')
+      };
+
+      // Push to Firebase
       database.ref('news').push(newsData)
         .then(() => {
-          alert("खबर सफलतापूर्वक पब्लिश हो गई!");
-          resetForm();
+          alert("🎉 खबर सफलतापूर्वक पब्लिश हो गई!");
+          newsForm.reset();
+        })
+        .catch((error) => {
+          alert("❌ एरर: " + error.message);
         });
-    }
-  });
-
-  // Load News Items
-  const newsList = document.getElementById('newsList');
-  database.ref('news').on('value', (snapshot) => {
-    newsList.innerHTML = '';
-    const data = snapshot.val();
-    if (!data) {
-      newsList.innerHTML = '<p style="text-align:center;">कोई खबर मौजूद नहीं है।</p>';
-      return;
-    }
-
-    Object.keys(data).reverse().forEach(key => {
-      const item = data[key];
-      const div = document.createElement('div');
-      div.className = 'news-item';
-      div.innerHTML = `
-        <div class="news-info">
-          <div class="news-title">${item.title}</div>
-          <div class="news-meta">${item.category} | ${item.date || ''}</div>
-        </div>
-        <div class="action-btns">
-          <button class="edit-btn" onclick="editNews('${key}', '${encodeURIComponent(JSON.stringify(item))}')">Edit</button>
-          <button class="delete-btn" onclick="deleteNews('${key}')">Delete</button>
-        </div>
-      `;
-      newsList.appendChild(div);
     });
-  });
 
-  function editNews(key, encodedData) {
-    const item = JSON.parse(decodeURIComponent(encodedData));
-    document.getElementById('editKey').value = key;
-    document.getElementById('title').value = item.title;
-    document.getElementById('category').value = item.category;
-    document.getElementById('image').value = item.image;
-    document.getElementById('content').value = item.content;
-    
-    document.getElementById('submitBtn').innerText = "🔄 खबर अपडेट करें";
-    document.getElementById('cancelBtn').style.display = "block";
-    window.scrollTo(0, 0);
-  }
+    // 2. Load Published News
+    database.ref('news').on('value', (snapshot) => {
+      publishedNews.innerHTML = '';
+      const data = snapshot.val();
 
-  function deleteNews(key) {
-    if (confirm("क्या आप सच में इस खबर को डिलीट करना चाहते हैं?")) {
-      database.ref('news/' + key).remove();
+      if (!data) {
+        publishedNews.innerHTML = '<p>अभी कोई खबर पब्लish नहीं है।</p>';
+        return;
+      }
+
+      Object.keys(data).reverse().forEach(key => {
+        const item = data[key];
+
+        const div = document.createElement('div');
+        div.className = 'news-item';
+        div.innerHTML = `
+          <h4>${item.title}</h4>
+          <small><b>कैटेगरी:</b> ${item.category} | <b>दिनांक:</b> ${item.date || ''}</small>
+          ${item.image ? `<br><img src="${item.image}" alt="photo">` : ''}
+          <p style="margin-top:8px;">${item.content}</p>
+          <button class="btn-delete" onclick="deleteNews('${key}')">🗑️ डिलीट करें</button>
+        `;
+
+        publishedNews.appendChild(div);
+      });
+    });
+
+    // 3. Delete News Function
+    function deleteNews(id) {
+      if (confirm("क्या आप इस खबर को हटाना चाहते हैं?")) {
+        database.ref('news/' + id).remove();
+      }
     }
-  }
-
-  function resetForm() {
-    newsForm.reset();
-    document.getElementById('editKey').value = '';
-    document.getElementById('submitBtn').innerText = "➕ खबर पब्लिश करें";
-    document.getElementById('cancelBtn').style.display = "none";
-    document.getElementById('uploadStatus').innerText = "";
-  }
-</script>
-
+  </script>
 </body>
 </html>
