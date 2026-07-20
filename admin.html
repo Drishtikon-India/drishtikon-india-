@@ -18,9 +18,11 @@
     input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
     .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
     .btn-submit:hover { background: #218838; }
-    .news-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; }
+    .news-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; position: relative; }
     .news-item img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px; }
-    .btn-delete { background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    .btn-delete { background: #dc3545; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; margin-top: 12px; font-weight: bold; display: inline-block; }
+    .btn-delete:hover { background: #bd2130; }
+    .error-msg { color: #dc3545; font-weight: bold; padding: 10px; background: #ffe6e6; border-radius: 5px; }
   </style>
 </head>
 <body>
@@ -28,6 +30,7 @@
   <div class="container">
     <h2>Drishtikon India - Admin Panel</h2>
 
+    <!-- PUBLISH FORM -->
     <form id="newsForm">
       <label>खबर का शीर्षक (Title):</label>
       <input type="text" id="title" placeholder="यहाँ शीर्षक लिखें" required>
@@ -41,11 +44,8 @@
         <option value="टेक">टेक</option>
       </select>
 
-      <label>फोटो का डायरेक्ट इमेज लिंक (Direct Image URL):</label>
+      <label>फोटो का डायरेक्ट लिंक (ImgBB Direct URL):</label>
       <input type="text" id="image" placeholder="https://i.ibb.co/.../photo.jpg">
-      <small style="color:#666; display:block; margin-top:-10px; margin-bottom:15px;">
-        *ImgBB पर फोटो अपलोड करने के बाद <b>HTML full linked</b> या <b>Direct Link</b> पेस्ट करें।
-      </small>
 
       <label>खबर का पूरा विवरण (Content):</label>
       <textarea id="content" rows="6" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
@@ -55,12 +55,13 @@
 
     <hr style="margin: 30px 0;">
 
-    <h3>पब्लिश की गई ख़बरें</h3>
-    <div id="publishedNews">लोड हो रहा है...</div>
+    <!-- PUBLISHED NEWS LIST FOR DELETE -->
+    <h3>पब्लिश की गई ख़बरें (Manage / Delete)</h3>
+    <div id="publishedNews">कनेक्ट हो रहा है... कृपया प्रतीक्षा करें।</div>
   </div>
 
   <script>
-    // Firebase Setup
+    // Firebase Config
     const firebaseConfig = {
       databaseURL: "https://drishtikon-india-default-rtdb.firebaseio.com/"
     };
@@ -70,19 +71,14 @@
     const newsForm = document.getElementById('newsForm');
     const publishedNews = document.getElementById('publishedNews');
 
-    // 1. Publish News Function
+    // 1. PUBLISH FUNCTION
     newsForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
       const title = document.getElementById('title').value;
       const category = document.getElementById('category').value;
-      let image = document.getElementById('image').value.trim();
+      const image = document.getElementById('image').value.trim();
       const content = document.getElementById('content').value;
-
-      // अगर ImgBB वाला साधारण वेब लिंक डाला है तो उसे डायरेक्ट फोटो लिंक में बदलें
-      if (image.includes('ibb.co/') && !image.includes('i.ibb.co')) {
-        // Warning support
-      }
 
       const newsData = {
         title: title,
@@ -92,24 +88,26 @@
         date: new Date().toLocaleDateString('hi-IN')
       };
 
-      // Push to Firebase
       database.ref('news').push(newsData)
         .then(() => {
           alert("🎉 खबर सफलतापूर्वक पब्लिश हो गई!");
           newsForm.reset();
         })
         .catch((error) => {
-          alert("❌ एरर: " + error.message);
+          alert("❌ एरर: " + error.message + "\n\nकृपया Firebase Console में Rules चेक करें!");
         });
     });
 
-    // 2. Load Published News
+    // 2. FETCH NEWS & HANDLE LOADING ISSUE
+    let dataLoaded = false;
+
     database.ref('news').on('value', (snapshot) => {
+      dataLoaded = true;
       publishedNews.innerHTML = '';
       const data = snapshot.val();
 
       if (!data) {
-        publishedNews.innerHTML = '<p>अभी कोई खबर पब्लish नहीं है।</p>';
+        publishedNews.innerHTML = '<p>अभी कोई खबर पब्लिश नहीं है।</p>';
         return;
       }
 
@@ -128,14 +126,31 @@
 
         publishedNews.appendChild(div);
       });
+    }, (error) => {
+      dataLoaded = true;
+      publishedNews.innerHTML = `<div class="error-msg">⚠️ कनेक्ट नहीं हो पाया! Firebase Database Rules में Read Permission बंद है।<br>Error: ${error.message}</div>`;
     });
 
-    // 3. Delete News Function
+    // Timeout Check (अगर 8 सेकंड तक डेटा न आये तो एरर दिखाए)
+    setTimeout(() => {
+      if (!dataLoaded) {
+        publishedNews.innerHTML = `<div class="error-msg">⚠️ लोड होने में समस्या आ रही है। कृपया सुनिश्चित करें कि Firebase Rules में Read/Write 'true' है।</div>`;
+      }
+    }, 8000);
+
+    // 3. DELETE FUNCTION
     function deleteNews(id) {
-      if (confirm("क्या आप इस खबर को हटाना चाहते हैं?")) {
-        database.ref('news/' + id).remove();
+      if (confirm("क्या आप वाकई इस खबर को डिलीट करना चाहते हैं?")) {
+        database.ref('news/' + id).remove()
+          .then(() => {
+            alert("🗑️ खबर सफलतापूर्वक डिलीट हो गई!");
+          })
+          .catch((error) => {
+            alert("❌ एरर: " + error.message);
+          });
       }
     }
   </script>
 </body>
 </html>
+
