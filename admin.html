@@ -1,112 +1,229 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Drishtikon India - Admin Panel</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f9; max-width: 600px; margin: auto; }
-    h2 { text-align: center; color: #333; }
-    .form-group { margin-bottom: 15px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; }
-    input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
-    button:hover { background-color: #218838; }
-    #status { margin-top: 15px; text-align: center; font-weight: bold; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drishtikon India - Admin Panel</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px; margin: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { padding: 12px; background-color: #008cba; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        button:hover { background-color: #007399; }
+        .add-btn { width: 100%; background-color: #04AA6D; }
+        .add-btn:hover { background-color: #059862; }
+        .edit-btn { background-color: #ff9800; font-size: 13px; padding: 6px 10px; margin-right: 5px; border-radius: 4px; }
+        .edit-btn:hover { background-color: #e68a00; }
+        .delete-btn { background-color: #f44336; font-size: 13px; padding: 6px 10px; border-radius: 4px; }
+        .delete-btn:hover { background-color: #da190b; }
+        .cancel-btn { background-color: #777; width: 100%; margin-top: 5px; display: none; }
+        #message { text-align: center; font-weight: bold; margin-bottom: 15px; }
+        hr { border: 0; height: 1px; background: #ddd; margin: 30px 0; }
+        .news-item { background: #f9f9f9; padding: 12px; border: 1px solid #e0e0e0; border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .news-info { max-width: 65%; }
+        .news-title { font-weight: bold; color: #222; }
+        .news-cat { font-size: 12px; color: #666; }
+        .action-btns { display: flex; align-items: center; }
+    </style>
 </head>
 <body>
 
-  <h2>Drishtikon India - Admin Panel</h2>
+<div class="container">
+    <h2>Drishtikon India - Admin Panel</h2>
+    <div id="message"></div>
 
-  <form id="newsForm">
-    <div class="form-group">
-      <label>खबर का शीर्षक (Title):</label>
-      <input type="text" id="title" required placeholder="यहाँ शीर्षक दर्ज करें">
-    </div>
+    <!-- खबर जोड़ने और Edit करने का फॉर्म -->
+    <form id="newsForm">
+        <input type="hidden" id="editDocId" value="">
 
-    <div class="form-group">
-      <label>कैटेगरी (Category):</label>
-      <select id="category">
-        <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
-        <option value="राजनीति">राजनीति</option>
-        <option value="खेल">खेल</option>
-        <option value="मनोरंजन">मनोरंजन</option>
-        <option value="देश-विदेश">देश-विदेश</option>
-      </select>
-    </div>
+        <label>खबर का शीर्षक (Title):</label>
+        <input type="text" id="title" placeholder="यहाँ शीर्षक दर्ज करें" required>
 
-    <div class="form-group">
-      <label>फोटो का Link (Image URL):</label>
-      <input type="url" id="imageUrl" placeholder="https://example.com/image.jpg">
-    </div>
+        <label>कैटेगरी (Category):</label>
+        <select id="category">
+            <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
+            <option value="राजनीति">राजनीति</option>
+            <option value="खेल">खेल</option>
+            <option value="मनोरंजन">मनोरंजन</option>
+            <option value="देश/विदेश">देश/विदेश</option>
+        </select>
 
-    <div class="form-group">
-      <label>खबर का पूरा विवरण (Content):</label>
-      <textarea id="content" rows="6" required placeholder="यहाँ पूरी खबर लिखें..."></textarea>
-    </div>
+        <label>फोटो का Link (Image URL):</label>
+        <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
 
-    <button type="submit" id="submitBtn">खबर पब्लिश करें</button>
-  </form>
+        <label>खबर का पूरा विवरण (Content):</label>
+        <textarea id="content" rows="5" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
 
-  <p id="status"></p>
+        <button type="submit" id="submitBtn" class="add-btn">➕ खबर पब्लिश करें</button>
+        <button type="button" id="cancelBtn" class="cancel-btn" onclick="resetForm()">❌ Cancel Edit</button>
+    </form>
 
-  <!-- Firebase Modular Scripts -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <hr>
 
-    // Firebase Config (Drishtikon India)
-    const firebaseConfig = {
-      apiKey: "AIzaSyAF8LuNgB105d5196pJ9o7Y3lY...", 
-      authDomain: "drishtikon-india.firebaseapp.com",
-      projectId: "drishtikon-india",
-      storageBucket: "drishtikon-india.firebasestorage.app",
-      messagingSenderId: "604136290215",
-      appId: "1:604136290215:web:a8fe3a8d4c36bc58d72882"
-    };
+    <h3>पब्लिश की गई ख़बरें (Manage / Edit / Delete)</h3>
+    <div id="newsList">खबरें लोड हो रही हैं...</div>
+</div>
 
-    // Firebase Initialize
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-    // Form Submit Event
-    const form = document.getElementById('newsForm');
-    const statusText = document.getElementById('status');
-    const submitBtn = document.getElementById('submitBtn');
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAYbIsR8c_4j-wL7Wly05GvLIn2L4",
+    authDomain: "drishtikon-india-11.firebaseapp.com",
+    projectId: "drishtikon-india-11",
+    storageBucket: "drishtikon-india-11.firebasestorage.app",
+    messagingSenderId: "594773823432",
+    appId: "1:594773823432:web:7ef5bd500c43ca3fdded6e"
+  };
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      submitBtn.disabled = true;
-      statusText.style.color = "blue";
-      statusText.innerText = "खबर अपलोड हो रही है...";
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-      const title = document.getElementById('title').value;
-      const category = document.getElementById('category').value;
-      const imageUrl = document.getElementById('imageUrl').value;
-      const content = document.getElementById('content').value;
+  const newsForm = document.getElementById('newsForm');
+  const messageDiv = document.getElementById('message');
+  const newsListContainer = document.getElementById('newsList');
+  const submitBtn = document.getElementById('submitBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const editDocIdInput = document.getElementById('editDocId');
 
-      try {
-        await addDoc(collection(db, "news"), {
-          title: title,
-          category: category,
-          imageUrl: imageUrl,
-          content: content,
-          timestamp: serverTimestamp()
-        });
+  // 1. Add या Edit (Update) करने का कोड
+  newsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const docId = editDocIdInput.value;
+    const title = document.getElementById('title').value;
+    const category = document.getElementById('category').value;
+    const imageUrl = document.getElementById('imageUrl').value;
+    const content = document.getElementById('content').value;
 
-        statusText.style.color = "green";
-        statusText.innerText = "✅ खबर सफलतापूर्वक पब्लिश हो गई!";
-        form.reset();
-      } catch (error) {
-        console.error("Error adding document: ", error);
-        statusText.style.color = "red";
-        statusText.innerText = "❌ त्रुटि: " + error.message;
-      } finally {
-        submitBtn.disabled = false;
+    if (docId) {
+      // UPDATE (Edit)
+      messageDiv.innerHTML = "अपडेट हो रहा है...";
+      messageDiv.style.color = "blue";
+
+      db.collection("news").doc(docId).update({
+        title: title,
+        category: category,
+        imageUrl: imageUrl,
+        content: content
+      })
+      .then(() => {
+        messageDiv.innerHTML = "✏️ खबर सफलतापूर्वक अपडेट हो गई!";
+        messageDiv.style.color = "green";
+        resetForm();
+        loadNews();
+      })
+      .catch((error) => {
+        messageDiv.innerHTML = "❌ एरर: " + error.message;
+        messageDiv.style.color = "red";
+      });
+
+    } else {
+      // ADD (New)
+      messageDiv.innerHTML = "पब्लिश हो रहा है...";
+      messageDiv.style.color = "blue";
+
+      db.collection("news").add({
+        title: title,
+        category: category,
+        imageUrl: imageUrl,
+        content: content,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+        messageDiv.innerHTML = "✅ खबर सफलतापूर्वक पब्लिश हो गई!";
+        messageDiv.style.color = "green";
+        resetForm();
+        loadNews();
+      })
+      .catch((error) => {
+        messageDiv.innerHTML = "❌ एरर: " + error.message;
+        messageDiv.style.color = "red";
+      });
+    }
+  });
+
+  // 2. पब्लिश ख़बरों को लोड करने का कोड
+  function loadNews() {
+    db.collection("news").orderBy("timestamp", "desc").get()
+    .then((querySnapshot) => {
+      newsListContainer.innerHTML = "";
+      if (querySnapshot.empty) {
+        newsListContainer.innerHTML = "<p>कोई खबर मौजूद नहीं है।</p>";
+        return;
       }
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const newsItem = document.createElement('div');
+        newsItem.className = 'news-item';
+        
+        // डेटा को सुरक्शित रूप से ट्रांसफर करने के लिए
+        const escapedTitle = data.title.replace(/'/g, "\\'");
+        const escapedContent = data.content.replace(/'/g, "\\'");
+        const escapedImage = (data.imageUrl || '').replace(/'/g, "\\'");
+
+        newsItem.innerHTML = `
+          <div class="news-info">
+            <div class="news-title">${data.title}</div>
+            <div class="news-cat">कैटेगरी: ${data.category}</div>
+          </div>
+          <div class="action-btns">
+            <button class="edit-btn" onclick="startEdit('${doc.id}', '${escapedTitle}', '${data.category}', '${escapedImage}', '${escapedContent}')">✏️ Edit</button>
+            <button class="delete-btn" onclick="deleteNews('${doc.id}')">🗑️ Delete</button>
+          </div>
+        `;
+        newsListContainer.appendChild(newsItem);
+      });
+    })
+    .catch((error) => {
+      newsListContainer.innerHTML = "खबरें लोड करने में एरर आया: " + error.message;
     });
-  </script>
+  }
+
+  // 3. Edit बटन पर क्लिक करने पर डेटा फॉर्म में भरना
+  function startEdit(id, title, category, imageUrl, content) {
+    editDocIdInput.value = id;
+    document.getElementById('title').value = title;
+    document.getElementById('category').value = category;
+    document.getElementById('imageUrl').value = imageUrl;
+    document.getElementById('content').value = content;
+
+    submitBtn.innerHTML = "✏️ खबर अपडेट (Save) करें";
+    submitBtn.style.backgroundColor = "#ff9800";
+    cancelBtn.style.display = "block";
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // 4. Edit रिसेट/कैंसल करना
+  function resetForm() {
+    newsForm.reset();
+    editDocIdInput.value = "";
+    submitBtn.innerHTML = "➕ खबर पब्लिश करें";
+    submitBtn.style.backgroundColor = "#04AA6D";
+    cancelBtn.style.display = "none";
+  }
+
+  // 5. खबर Delete करने का कोड
+  function deleteNews(id) {
+    if (confirm("क्या आप वाकई इस खबर को डिलीट करना चाहते हैं?")) {
+      db.collection("news").doc(id).delete()
+      .then(() => {
+        alert("🗑️ खबर डिलीट कर दी गई है!");
+        loadNews();
+      })
+      .catch((error) => {
+        alert("डिलीट करने में समस्या आई: " + error.message);
+      });
+    }
+  }
+
+  // पेज खुलते ही ख़बरें लोड करें
+  loadNews();
+</script>
+
 </body>
 </html>
