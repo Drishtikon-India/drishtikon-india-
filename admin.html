@@ -4,187 +4,211 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Drishtikon India - Admin Panel</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <style>
-    * { box-sizing: border-box; font-family: Arial, sans-serif; }
-    body { background-color: #f4f6f9; margin: 0; padding: 20px; }
-    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #333; margin-bottom: 20px; }
-    .form-group { margin-bottom: 15px; }
-    label { font-weight: bold; display: block; margin-bottom: 5px; font-size: 14px; }
-    input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-    textarea { height: 100px; resize: vertical; }
-    .btn { width: 100%; padding: 12px; background-color: #00a65a; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; }
-    .btn:hover { background-color: #008d4c; }
-    .upload-btn { background-color: #007bff; color: white; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; width: 100%; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+    .admin-container { max-width: 650px; margin: 0 auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2, h3 { text-align: center; color: #333; margin-bottom: 20px; }
+    label { font-weight: bold; margin-top: 15px; display: block; color: #444; }
+    input[type="text"], textarea, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+    
+    .upload-btn-wrapper { margin-top: 10px; text-align: center; }
+    .file-input { display: none; }
+    .upload-btn { background-color: #007bff; color: white; padding: 10px 15px; border-radius: 6px; cursor: pointer; display: inline-block; font-weight: bold; width: 100%; box-sizing: border-box; text-align: center; }
     .upload-btn:hover { background-color: #0056b3; }
-    .news-list { margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px; }
-    .news-item { background: #f9f9f9; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-    .news-title { font-weight: bold; font-size: 14px; }
-    .action-btns button { padding: 5px 10px; margin-left: 5px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; }
-    .edit-btn { background-color: #f39c12; color: white; }
-    .delete-btn { background-color: #dd4b39; color: white; }
+    #uploadStatus { font-size: 13px; font-weight: bold; color: #28a745; margin-top: 5px; display: block; }
+
+    .submit-btn { width: 100%; background-color: #00a65a; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+    .submit-btn:hover { background-color: #008d4c; }
+    .cancel-btn { width: 100%; background-color: #dc3545; color: white; padding: 10px; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 10px; display: none; }
+
+    .news-item { background: #f8f9fa; border: 1px solid #ddd; padding: 12px; margin-top: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .news-info { max-width: 70%; }
+    .news-title { font-weight: bold; font-size: 15px; color: #222; }
+    .news-meta { font-size: 12px; color: #666; }
+    .action-btns button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; margin-left: 5px; }
+    .edit-btn { background-color: #ffc107; color: #000; }
+    .delete-btn { background-color: #dc3545; color: #fff; }
   </style>
-  <!-- Cloudinary Widget Script -->
-  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
 </head>
 <body>
 
-<div class="container">
+<div class="admin-container">
   <h2>Drishtikon India - Admin Panel</h2>
   
   <form id="newsForm">
-    <input type="hidden" id="newsId">
+    <input type="hidden" id="editKey">
 
-    <div class="form-group">
-      <label>खबर का शीर्षक (Title):</label>
-      <input type="text" id="title" placeholder="यहाँ शीर्षक दर्ज करें" required>
+    <label for="title">खबर का शीर्षक (Title):</label>
+    <input type="text" id="title" placeholder="यहाँ शीर्षक दर्ज करें" required>
+
+    <label for="category">कैटेगरी (Category):</label>
+    <select id="category">
+      <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
+      <option value="राष्ट्रीय">राष्ट्रीय</option>
+      <option value="राजनीति">राजनीति</option>
+      <option value="खेल">खेल</option>
+      <option value="मनोरंजन">मनोरंजन</option>
+    </select>
+
+    <label for="image">फोटो (Image Upload / Link):</label>
+    <input type="text" id="image" placeholder="फोटो का लिंक अपने आप यहाँ आएगा" required>
+    
+    <div class="upload-btn-wrapper">
+      <label for="filePicker" class="upload-btn">📸 गैलरी से फोटो सेलेक्ट करें</label>
+      <input type="file" id="filePicker" class="file-input" accept="image/*" onchange="uploadImage(this)">
+      <span id="uploadStatus"></span>
     </div>
 
-    <div class="form-group">
-      <label>कैटेगरी (Category):</label>
-      <select id="category">
-        <option value="ताज़ा ख़बर">ताज़ा ख़बर</option>
-        <option value="राष्ट्रीय">राष्ट्रीय</option>
-        <option value="राजनीति">राजनीति</option>
-        <option value="खेल">खेल</option>
-        <option value="मनोरंजन">मनोरंजन</option>
-      </select>
-    </div>
+    <label for="content">खबर का पूरा विवरण (Content):</label>
+    <textarea id="content" rows="6" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
 
-    <div class="form-group">
-      <label>फोटो (Image Upload / Link):</label>
-      <input type="text" id="imageUrl" placeholder="फोटो का लिंक या नीचे अपलोड करें">
-      <button type="button" id="upload_widget" class="upload-btn">📸 गैलरी से फोटो अपलोड करें</button>
-    </div>
-
-    <div class="form-group">
-      <label>खबर का पूरा विवरण (Content):</label>
-      <textarea id="content" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
-    </div>
-
-    <button type="submit" id="submitBtn" class="btn">➕ खबर पब्लिश करें</button>
+    <button type="submit" id="submitBtn" class="submit-btn">➕ खबर पब्लिश करें</button>
+    <button type="button" id="cancelBtn" class="cancel-btn" onclick="resetForm()">रद्द करें (Cancel)</button>
   </form>
 
-  <div class="news-list">
-    <h3>पब्लिश की गई ख़बरें (Manage / Edit / Delete)</h3>
-    <div id="newsContainer">लोड हो रहा है...</div>
-  </div>
+  <hr style="margin-top: 30px; border: 0; border-top: 1px solid #ccc;">
+
+  <h3>पब्लिश की गई ख़बरें (Manage / Edit / Delete)</h3>
+  <div id="newsList">लोड हो रहा है...</div>
 </div>
 
-<!-- Firebase Scripts -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  // Firebase Config
+<script>
+  // Firebase Configuration
   const firebaseConfig = {
-    apiKey: "AIzaSyD...", // आपकी पहले वाली API key यहाँ अपने आप सेट रहेगी अगर आप पुराना क्रेडेंशियल यूज़ कर रहे हैं
-    authDomain: "drishtikon-india.firebaseapp.com",
-    projectId: "drishtikon-india",
-    storageBucket: "drishtikon-india.appspot.com",
-    messagingSenderId: "104992982848",
-    appId: "1:104992982848:web:8e3d6f784e8979c"
+    databaseURL: "https://drishtikon-india-default-rtdb.firebaseio.com/"
   };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  // FreeImageHost API for Auto Image Upload
+  function uploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
 
-  const newsForm = document.getElementById('newsForm');
-  const newsContainer = document.getElementById('newsContainer');
-  const submitBtn = document.getElementById('submitBtn');
+    const statusText = document.getElementById('uploadStatus');
+    statusText.innerText = "⏳ फोटो अपलोड हो रही है, कृपया रुकें...";
+    statusText.style.color = "#ff9800";
 
-  // Cloudinary Upload Widget Configuration
-  var myWidget = cloudinary.createUploadWidget({
-    cloudName: 'demo', // यह फ्री डेमो क्लाउड नाम है, आप इसे यूज़ कर सकते हैं
-    uploadPreset: 'docs_upload_example_us_preset'
-  }, (error, result) => { 
-      if (!error && result && result.event === "success") { 
-        document.getElementById("imageUrl").value = result.info.secure_url;
-        alert("फोटो सफलतापूर्वक अपलोड हो गई है!");
+    const formData = new FormData();
+    formData.append("key", "6d207e02198a847aa98d0a2a901485a5"); // Free API Key
+    formData.append("action", "upload");
+    formData.append("source", file);
+
+    fetch("https://freeimage.host/api/1/upload", {
+      method: "POST",
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.image && data.image.url) {
+        document.getElementById('image').value = data.image.url;
+        statusText.innerText = "✅ फोटो अपलोड हो गई!";
+        statusText.style.color = "#28a745";
+      } else {
+        alert("फोटो अपलोड नहीं हो सकी, कृपया दोबारा प्रयास करें।");
+        statusText.innerText = "";
       }
-  });
-
-  document.getElementById("upload_widget").addEventListener("click", function(){
-      myWidget.open();
-  }, false);
-
-  // Read News
-  async function loadNews() {
-    newsContainer.innerHTML = "लोड हो रहा है...";
-    const querySnapshot = await getDocs(collection(db, "news"));
-    newsContainer.innerHTML = "";
-    
-    if (querySnapshot.empty) {
-      newsContainer.innerHTML = "<p>कोई खबर मौजूद नहीं है।</p>";
-      return;
-    }
-
-    querySnapshot.forEach((docSnap) => {
-      const news = docSnap.data();
-      const id = docSnap.id;
-
-      const item = document.createElement('div');
-      item.className = 'news-item';
-      item.innerHTML = `
-        <div class="news-title">${news.title}</div>
-        <div class="action-btns">
-          <button class="edit-btn" onclick="editNews('${id}', '${encodeURIComponent(news.title)}', '${news.category}', '${news.image}', '${encodeURIComponent(news.content)}')">✏️ Edit</button>
-          <button class="delete-btn" onclick="deleteNews('${id}')">🗑️ Delete</button>
-        </div>
-      `;
-      newsContainer.appendChild(item);
+    })
+    .catch(err => {
+      console.error(err);
+      alert("अपलोड में एरर आया। इंटरनेट चेक करें।");
+      statusText.innerText = "";
     });
   }
 
-  // Delete News
-  window.deleteNews = async (id) => {
-    if (confirm("क्या आप वाकई इस खबर को हटाना चाहते हैं?")) {
-      await deleteDoc(doc(db, "news", id));
-      loadNews();
-    }
-  };
-
-  // Edit News Load to Form
-  window.editNews = (id, title, category, image, content) => {
-    document.getElementById('newsId').value = id;
-    document.getElementById('title').value = decodeURIComponent(title);
-    document.getElementById('category').value = category;
-    document.getElementById('imageUrl').value = image;
-    document.getElementById('content').value = decodeURIComponent(content);
-    
-    submitBtn.innerText = "💾 बदलाव सेव करें (Update)";
-    submitBtn.style.backgroundColor = "#f39c12";
-    window.scrollTo(0, 0);
-  };
-
-  // Add / Update News
-  newsForm.addEventListener('submit', async (e) => {
+  // Form Submit (Add / Edit News)
+  const newsForm = document.getElementById('newsForm');
+  newsForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const id = document.getElementById('newsId').value;
+    const editKey = document.getElementById('editKey').value;
     const title = document.getElementById('title').value;
     const category = document.getElementById('category').value;
-    const image = document.getElementById('imageUrl').value;
+    const image = document.getElementById('image').value;
     const content = document.getElementById('content').value;
+    
+    const newsData = {
+      title: title,
+      category: category,
+      image: image,
+      content: content,
+      date: new Date().toLocaleDateString('hi-IN')
+    };
 
-    if (id) {
-      // Update
-      await updateDoc(doc(db, "news", id), { title, category, image, content });
-      alert("खबर अपडेट हो गई!");
+    if (editKey) {
+      database.ref('news/' + editKey).update(newsData)
+        .then(() => {
+          alert("खबर अपडेट हो गई!");
+          resetForm();
+        });
     } else {
-      // Add New
-      await addDoc(collection(db, "news"), { title, category, image, content, date: new Date().toLocaleDateString('hi-IN') });
-      alert("खबर सफलतापूर्व पब्लिश हो गई!");
+      database.ref('news').push(newsData)
+        .then(() => {
+          alert("खबर सफलतापूर्वक पब्लिश हो गई!");
+          resetForm();
+        });
     }
-
-    newsForm.reset();
-    document.getElementById('newsId').value = "";
-    submitBtn.innerText = "➕ खबर पब्लिश करें";
-    submitBtn.style.backgroundColor = "#00a65a";
-    loadNews();
   });
 
-  loadNews();
+  // Load News Items
+  const newsList = document.getElementById('newsList');
+  database.ref('news').on('value', (snapshot) => {
+    newsList.innerHTML = '';
+    const data = snapshot.val();
+    if (!data) {
+      newsList.innerHTML = '<p style="text-align:center;">कोई खबर मौजूद नहीं है।</p>';
+      return;
+    }
+
+    Object.keys(data).reverse().forEach(key => {
+      const item = data[key];
+      const div = document.createElement('div');
+      div.className = 'news-item';
+      div.innerHTML = `
+        <div class="news-info">
+          <div class="news-title">${item.title}</div>
+          <div class="news-meta">${item.category} | ${item.date || ''}</div>
+        </div>
+        <div class="action-btns">
+          <button class="edit-btn" onclick="editNews('${key}', '${encodeURIComponent(JSON.stringify(item))}')">Edit</button>
+          <button class="delete-btn" onclick="deleteNews('${key}')">Delete</button>
+        </div>
+      `;
+      newsList.appendChild(div);
+    });
+  });
+
+  function editNews(key, encodedData) {
+    const item = JSON.parse(decodeURIComponent(encodedData));
+    document.getElementById('editKey').value = key;
+    document.getElementById('title').value = item.title;
+    document.getElementById('category').value = item.category;
+    document.getElementById('image').value = item.image;
+    document.getElementById('content').value = item.content;
+    
+    document.getElementById('submitBtn').innerText = "🔄 खबर अपडेट करें";
+    document.getElementById('cancelBtn').style.display = "block";
+    window.scrollTo(0, 0);
+  }
+
+  function deleteNews(key) {
+    if (confirm("क्या आप सच में इस खबर को डिलीट करना चाहते हैं?")) {
+      database.ref('news/' + key).remove();
+    }
+  }
+
+  function resetForm() {
+    newsForm.reset();
+    document.getElementById('editKey').value = '';
+    document.getElementById('submitBtn').innerText = "➕ खबर पब्लिश करें";
+    document.getElementById('cancelBtn').style.display = "none";
+    document.getElementById('uploadStatus').innerText = "";
+  }
 </script>
 
 </body>
