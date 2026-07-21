@@ -19,10 +19,11 @@
     .btn-submit { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; }
     .btn-submit:hover { background: #218838; }
     .news-item { border: 1px solid #e0e0e0; padding: 15px; border-radius: 6px; margin-top: 15px; background: #fafafa; position: relative; }
-    .news-item img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px; }
+    .news-item img { max-width: 100%; height: auto; border-radius: 5px; margin-top: 10px; display: block; }
     .btn-delete { background: #dc3545; color: white; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; margin-top: 12px; font-weight: bold; display: inline-block; }
     .btn-delete:hover { background: #bd2130; }
     .error-msg { color: #dc3545; font-weight: bold; padding: 10px; background: #ffe6e6; border-radius: 5px; }
+    #uploadStatus { font-weight: bold; font-size: 13px; margin-top: -10px; margin-bottom: 10px; display: block; }
   </style>
 </head>
 <body>
@@ -44,13 +45,18 @@
         <option value="टेक">टेक</option>
       </select>
 
-      <label>फोटो का डायरेक्ट लिंक (ImgBB Direct URL):</label>
-      <input type="text" id="image" placeholder="https://i.ibb.co/.../photo.jpg">
+      <!-- Direct Image Upload Box -->
+      <label>फोटो चुनें (Direct Upload):</label>
+      <input type="file" id="imageFile" accept="image/*" onchange="convertImage(event)">
+      <span id="uploadStatus"></span>
+
+      <!-- Hidden field to store Image Data -->
+      <input type="hidden" id="imageUrl">
 
       <label>खबर का पूरा विवरण (Content):</label>
       <textarea id="content" rows="6" placeholder="यहाँ पूरी खबर लिखें..." required></textarea>
 
-      <button type="submit" class="btn-submit">➕ खबर पब्लिश करें</button>
+      <button type="submit" class="btn-submit" id="submitBtn">➕ खबर पब्लिश करें</button>
     </form>
 
     <hr style="margin: 30px 0;">
@@ -70,6 +76,34 @@
 
     const newsForm = document.getElementById('newsForm');
     const publishedNews = document.getElementById('publishedNews');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Function to convert image locally without third party
+    function convertImage(event) {
+      const file = event.target.files[0];
+      const statusText = document.getElementById('uploadStatus');
+      const imageUrlInput = document.getElementById('imageUrl');
+
+      if (!file) return;
+
+      statusText.innerText = "⏳ फोटो लोड हो रही है...";
+      statusText.style.color = "blue";
+      submitBtn.disabled = true; // Disable button while processing
+
+      const reader = new FileReader();
+      reader.onload = function(loadEvent) {
+        imageUrlInput.value = loadEvent.target.result; 
+        statusText.innerText = "✓ फोटो तैयार है!";
+        statusText.style.color = "green";
+        submitBtn.disabled = false; // Enable button back
+      };
+      reader.onerror = function() {
+        statusText.innerText = "❌ फोटो लोड करने में एरर आया।";
+        statusText.style.color = "red";
+        submitBtn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
 
     // 1. PUBLISH FUNCTION
     newsForm.addEventListener('submit', (e) => {
@@ -77,8 +111,13 @@
 
       const title = document.getElementById('title').value;
       const category = document.getElementById('category').value;
-      const image = document.getElementById('image').value.trim();
+      const image = document.getElementById('imageUrl').value;
       const content = document.getElementById('content').value;
+
+      if (!image) {
+        alert("⚠️ कृपया पहले एक फोटो चुनें!");
+        return;
+      }
 
       const newsData = {
         title: title,
@@ -92,6 +131,8 @@
         .then(() => {
           alert("🎉 खबर सफलतापूर्वक पब्लिश हो गई!");
           newsForm.reset();
+          document.getElementById('uploadStatus').innerText = '';
+          document.getElementById('imageUrl').value = '';
         })
         .catch((error) => {
           alert("❌ एरर: " + error.message + "\n\nकृपया Firebase Console में Rules चेक करें!");
@@ -119,7 +160,7 @@
         div.innerHTML = `
           <h4>${item.title}</h4>
           <small><b>कैटेगरी:</b> ${item.category} | <b>दिनांक:</b> ${item.date || ''}</small>
-          ${item.image ? `<br><img src="${item.image}" alt="photo">` : ''}
+          ${item.image ? `<br><img src="${item.image}" alt="News Image">` : ''}
           <p style="margin-top:8px;">${item.content}</p>
           <button class="btn-delete" onclick="deleteNews('${key}')">🗑️ डिलीट करें</button>
         `;
@@ -131,7 +172,7 @@
       publishedNews.innerHTML = `<div class="error-msg">⚠️ कनेक्ट नहीं हो पाया! Firebase Database Rules में Read Permission बंद है।<br>Error: ${error.message}</div>`;
     });
 
-    // Timeout Check (अगर 8 सेकंड तक डेटा न आये तो एरर दिखाए)
+    // Timeout Check
     setTimeout(() => {
       if (!dataLoaded) {
         publishedNews.innerHTML = `<div class="error-msg">⚠️ लोड होने में समस्या आ रही है। कृपया सुनिश्चित करें कि Firebase Rules में Read/Write 'true' है।</div>`;
@@ -153,4 +194,3 @@
   </script>
 </body>
 </html>
-
